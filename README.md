@@ -1,4 +1,4 @@
-# Herbert Schildt's Little C
+# Herbert Schildt's Little C (Modified Branch)
 Herbert Schildt's (vastly unmodified) Little C Interpreter.
 
 Little C is an interpreted subset of the C programming language, written as a learning tool by Herbert Schildt for his book on the C programming language.
