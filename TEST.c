@@ -7,6 +7,8 @@
 int i, j;   /* global vars */
 char ch;
 
+// c++ comment
+
 main()
 {
   int i, j;  /* local vars */
@@ -54,4 +56,4 @@ print_alpha()
   }
   puts("");
 }
-
+

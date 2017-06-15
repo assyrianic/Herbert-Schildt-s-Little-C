@@ -414,7 +414,7 @@ void local_push(struct var_type i)
 }
 
 /* Pop index into local variable stack. */
-func_pop(void)
+int func_pop(void)
 {
   functos--;
   if(functos<0) sntx_err(RET_NOCALL);
