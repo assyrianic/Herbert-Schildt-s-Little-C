@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <setjmp.h>
-#include <math.h>
+//#include <math.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -109,7 +109,7 @@ void putback(void);
 void decl_local(void);
 void local_push(variable_t i);
 void eval_exp(int *value);
-void sntx_err(int error);
+void sntx_err(int error, const char *debug);
 void exec_if(void);
 void find_eob(void);
 void exec_for(void);
@@ -187,8 +187,8 @@ void interp_block(void)
 				putback();	/* restore token to input stream for
 											 further processing by eval_exp() */
 				eval_exp(&value);	/* process the expression */
-				if(*token!=';')
-					sntx_err(SEMI_EXPECTED);
+				if( *token!=';' )
+					sntx_err(SEMI_EXPECTED, __func__);
 		}
 		else if( token_type==BLOCK ) { /* if block delimiter */
 			if( *token=='{' ) /* is a block */
@@ -323,8 +323,10 @@ void decl_global(void)
 		get_token();
 		gvar_index++;
 	} while( *token==',' );
-	if( *token!=';' )
-		sntx_err(SEMI_EXPECTED);
+	if( *token != ';' ) {
+		printf("token == '%s'\n", token );
+		sntx_err(SEMI_EXPECTED, __func__);
+	}
 }
 
 /* Declare a local variable. */
@@ -344,7 +346,7 @@ void decl_local(void)
 		get_token();
 	} while( *token==',' );
 	if( *token!=';' )
-		sntx_err(SEMI_EXPECTED);
+		sntx_err(SEMI_EXPECTED, __func__);
 }
 
 /* Call a function. */
@@ -355,7 +357,7 @@ void call(void)
 
 	loc = find_func(token); /* find entry point of function */
 	if( loc==NULL )
-		sntx_err(FUNC_UNDEF); /* function not defined */
+		sntx_err(FUNC_UNDEF, __func__); /* function not defined */
 	else {
 		lvartemp = lvartos;	/* save local var stack index */
 		get_args();	/* get function arguments */
@@ -380,7 +382,7 @@ void get_args(void)
 	count = 0;
 	get_token();
 	if( *token!='(' )
-		sntx_err(PAREN_EXPECTED);
+		sntx_err(PAREN_EXPECTED, __func__);
 
 	/* process a comma-separated list of values */
 	do {
@@ -410,7 +412,7 @@ void get_params(void)
 		p = &local_var_stack[i];
 		if( *token!=')' ) {
 			if( tok!=INT && tok!=CHAR )
-				sntx_err(TYPE_EXPECTED);
+				sntx_err(TYPE_EXPECTED, __func__);
 			p->var_type = token_type;
 			get_token();
 
@@ -422,7 +424,7 @@ void get_params(void)
 		else break;
 	} while( *token==',' );
 	if( *token!=')' )
-		sntx_err(PAREN_EXPECTED);
+		sntx_err(PAREN_EXPECTED, __func__);
 }
 
 /* Return from a function. */
@@ -440,7 +442,7 @@ void func_ret(void)
 void local_push(variable_t i)
 {
 	if( lvartos>NUM_LOCAL_VARS )
-		sntx_err(TOO_MANY_LVARS);
+		sntx_err(TOO_MANY_LVARS, __func__);
 
 	local_var_stack[lvartos] = i;
 	lvartos++;
@@ -451,7 +453,7 @@ int func_pop(void)
 {
 	functos--;
 	if( functos<0 )
-		sntx_err(RET_NOCALL);
+		sntx_err(RET_NOCALL, __func__);
 	return(call_stack[functos]);
 }
 
@@ -459,7 +461,7 @@ int func_pop(void)
 void func_push(int i)
 {
 	if( functos>NUM_FUNC )
-		sntx_err(NEST_FUNC);
+		sntx_err(NEST_FUNC, __func__);
 	call_stack[functos] = i;
 	functos++;
 }
@@ -485,7 +487,7 @@ void assign_var(char *var_name, int value)
 			}
 		}
 	}
-	sntx_err(NOT_VAR); /* variable not found */
+	sntx_err(NOT_VAR, __func__); /* variable not found */
 }
 
 /* Find the value of a variable. */
@@ -503,7 +505,7 @@ int find_var(char *s)
 		if( !strcmp(global_vars[i].var_name, s) )
 			return global_vars[i].value;
 
-	sntx_err(NOT_VAR); /* variable not found */
+	sntx_err(NOT_VAR, __func__); /* variable not found */
 }
 
 /* Determine if an identifier is a variable. Return
@@ -579,7 +581,7 @@ void exec_do(void)
 	interp_block(); /* interpret loop */
 	get_token();
 	if( tok!=WHILE )
-		sntx_err(WHILE_EXPECTED);
+		sntx_err(WHILE_EXPECTED, __func__);
 	eval_exp(&cond); /* check the loop condition */
 	if( cond )
 		prog = temp; /* if true loop; otherwise, continue on */
@@ -611,13 +613,14 @@ void exec_for(void)
 	get_token();
 	eval_exp(&cond);	/* initialization expression */
 	if( *token!=';' )
-		sntx_err(SEMI_EXPECTED);
+		sntx_err(SEMI_EXPECTED, __func__);
+	
 	prog++; /* get past the ; */
 	temp = prog;
 	for( ;; ) {
 		eval_exp(&cond);	/* check the condition */
 		if( *token!=';' )
-			sntx_err(SEMI_EXPECTED);
+			sntx_err(SEMI_EXPECTED, __func__);
 		prog++; /* get past the ; */
 		temp2 = prog;
 
@@ -631,7 +634,8 @@ void exec_for(void)
 				brace--;
 		}
 
-		if( cond ) interp_block();	/* if true, interpret */
+		if( cond )
+			interp_block();	/* if true, interpret */
 		else {	/* otherwise, skip around loop */
 			find_eob();
 			return;

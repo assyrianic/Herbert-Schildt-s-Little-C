@@ -7,8 +7,6 @@
 int i, j;	 /* global vars */
 char ch;
 
-// c++ comment
-
 main()
 {
 	int i, j;	/* local vars */
@@ -35,7 +33,7 @@ main()
 }
 
 /* Sum the values between 0 and num. */
-int sum(int num)
+sum(int num)
 {
 	int running_sum;
 	running_sum = 0;
@@ -48,7 +46,7 @@ int sum(int num)
 }
 
 /* Print the alphabet. */
-int print_alpha()
+print_alpha()
 {
 	for(ch = 'A'; ch<='Z'; ch = ch + 1) {
 		putch(ch);

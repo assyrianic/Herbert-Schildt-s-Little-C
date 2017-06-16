@@ -30,7 +30,7 @@ enum error_msg {
 };
 
 int get_token(void);
-void sntx_err(int error);
+void sntx_err(int error, const char *debug);
 void eval_exp(int *result);
 void putback(void);
 
@@ -61,18 +61,18 @@ int call_puts(void)
 {
 	get_token();
 	if( *token!='(' )
-		sntx_err(PAREN_EXPECTED);
+		sntx_err(PAREN_EXPECTED, __func__);
 	get_token();
 	if( token_type!=STRING )
-		sntx_err(QUOTE_EXPECTED);
+		sntx_err(QUOTE_EXPECTED, __func__);
 	puts(token);
 	get_token();
 	if( *token!=')' )
-		sntx_err(PAREN_EXPECTED);
+		sntx_err(PAREN_EXPECTED, __func__);
 
 	get_token();
 	if( *token!=';' )
-		sntx_err(SEMI_EXPECTED);
+		sntx_err(SEMI_EXPECTED, __func__);
 	putback();
 	return 0;
 }
@@ -84,7 +84,7 @@ int print(void)
 
 	get_token();
 	if( *token!='(' )
-		sntx_err(PAREN_EXPECTED);
+		sntx_err(PAREN_EXPECTED, __func__);
 
 	get_token();
 	if( token_type==STRING ) { /* output a string */
@@ -99,11 +99,11 @@ int print(void)
 	get_token();
 
 	if( *token!=')' )
-		sntx_err(PAREN_EXPECTED);
+		sntx_err(PAREN_EXPECTED, __func__);
 
 	get_token();
 	if( *token!=';' )
-		sntx_err(SEMI_EXPECTED);
+		sntx_err(SEMI_EXPECTED, __func__);
 	putback();
 	return 0;
 }

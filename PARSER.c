@@ -5,7 +5,7 @@
 
  */
 #include <setjmp.h>
-#include <math.h>
+//#include <math.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -108,7 +108,7 @@ void eval_exp4(int *value);
 void eval_exp5(int *value);
 void atom(int *value);
 void eval_exp0(int *value);
-void sntx_err(int error);
+void sntx_err(int error, const char *debug);
 void putback(void);
 void assign_var(char *var_name, int value);
 int isdelim(char c);
@@ -126,7 +126,7 @@ void eval_exp(int *value)
 {
 	get_token();
 	if( !*token ) {
-		sntx_err(NO_EXP);
+		sntx_err(NO_EXP, __func__);
 		return;
 	}
 	if( *token==';' ) {
@@ -276,7 +276,7 @@ void eval_exp5(int *value)
 		get_token();
 		eval_exp0(value);	 /* get subexpression */
 		if( *token != ')' )
-			sntx_err(PAREN_EXPECTED);
+			sntx_err(PAREN_EXPECTED, __func__);
 		get_token();
 	}
 	else atom(value);
@@ -308,27 +308,27 @@ void atom(int *value)
 				*value = *prog;
 				prog++;
 				if( *prog!='\'' )
-					sntx_err(QUOTE_EXPECTED);
+					sntx_err(QUOTE_EXPECTED, __func__);
 				prog++;
 				get_token();
 				return ;
 			}
 			if( *token==')' )
 				return; /* process empty expression */
-			else sntx_err(SYNTAX); /* syntax error */
+			else sntx_err(SYNTAX, __func__); /* syntax error */
 		default:
-			sntx_err(SYNTAX); /* syntax error */
+			sntx_err(SYNTAX, __func__); /* syntax error */
 	}
 }
 
 /* Display an error message. */
-void sntx_err(int error)
+void sntx_err(int error, const char *debug)
 {
 	char *p, *temp;
 	int linecount = 0;
 	register int i;
 
-	static char *e[]= {
+	const char *e[]= {
 		"syntax error",
 		"unbalanced parentheses",
 		"no expression present",
@@ -356,9 +356,11 @@ void sntx_err(int error)
 		}
 	}
 	printf(" in line %d\n", linecount);
+	printf("called by function: '%s'\n", debug);
 
 	temp = p;
 	for( i=0 ; i<20 && p>p_buf && *p!='\n' ; i++, p-- );
+	
 	for( i=0 ; i<30 && p<=temp ; i++, p++ )
 		printf("%c", *p);
 
@@ -482,7 +484,7 @@ int get_token(void)
 		while( *prog!='"'&& *prog!='\r' )
 			*temp++ = *prog++;
 		if( *prog=='\r' )
-			sntx_err(SYNTAX);
+			sntx_err(SYNTAX, __func__);
 		prog++;
 		*temp = '\0';
 		return( token_type=STRING );
